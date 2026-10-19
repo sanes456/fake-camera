@@ -186,6 +186,17 @@
         app:iconGravity="textStart"
         app:iconTint="@color/accent_dark" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOverlay"
+        style="@style/Widget.FakeCamera.Button.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:enabled="false"
+        android:text="@string/overlay_start"
+        app:icon="@drawable/ic_overlay"
+        app:iconGravity="textStart" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

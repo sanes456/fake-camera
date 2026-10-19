@@ -1,13 +1,18 @@
 package com.fakecamera.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.OpenableColumns
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -48,6 +53,22 @@ class MainActivity : AppCompatActivity() {
         showPreview()
     }
 
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (Settings.canDrawOverlays(this)) {
+            launchOverlay()
+        } else {
+            Toast.makeText(this, R.string.overlay_permission, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        ensureOverlayPermission()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -60,6 +81,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnPickImage.setOnClickListener { pickMedia.launch(arrayOf("image/*")) }
         binding.btnPickVideo.setOnClickListener { pickMedia.launch(arrayOf("video/*")) }
         binding.btnStart.setOnClickListener { openPlayer() }
+        binding.btnOverlay.setOnClickListener { startOverlayFlow() }
         binding.btnHelp.setOnClickListener { showHelp() }
 
         restoreSelection()
@@ -113,11 +135,13 @@ class MainActivity : AppCompatActivity() {
             binding.previewLoading.isVisible = false
             binding.fileName.isVisible = false
             binding.btnStart.isEnabled = false
+            binding.btnOverlay.isEnabled = false
             return
         }
 
         binding.emptyState.isVisible = false
         binding.btnStart.isEnabled = true
+        binding.btnOverlay.isEnabled = true
         binding.fileName.text = displayName(uri)
         binding.fileName.isVisible = true
 
@@ -174,11 +198,46 @@ class MainActivity : AppCompatActivity() {
 
     private fun openPlayer() {
         val uri = selectedUri ?: return
+        OverlayService.stop(this)
         startActivity(
             Intent(this, PlayerActivity::class.java)
                 .putExtra(PlayerActivity.EXTRA_URI, uri.toString())
                 .putExtra(PlayerActivity.EXTRA_IS_VIDEO, isVideo)
         )
+    }
+
+    private fun startOverlayFlow() {
+        if (selectedUri == null) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            ensureOverlayPermission()
+        }
+    }
+
+    private fun ensureOverlayPermission() {
+        if (Settings.canDrawOverlays(this)) {
+            launchOverlay()
+        } else {
+            overlayPermissionLauncher.launch(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
+            )
+        }
+    }
+
+    private fun launchOverlay() {
+        val uri = selectedUri ?: return
+        player?.pause()
+        OverlayService.start(this, uri, isVideo)
+        moveTaskToBack(true)
     }
 
     private fun showHelp() {
@@ -191,7 +250,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (isVideo && selectedUri != null && player?.isPlaying == false) {
+        if (isVideo && selectedUri != null && player?.isPlaying == false &&
+            !OverlayService.isRunning
+        ) {
             player?.play()
         }
     }

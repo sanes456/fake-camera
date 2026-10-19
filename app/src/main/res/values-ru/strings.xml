@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fake Camera</string>
+    <string name="subtitle">Ваше фото или видео на экране</string>
+    <string name="empty_title">Ничего не выбрано</string>
+    <string name="empty_subtitle">Выберите фото или видео, чтобы показывать его вместо камеры</string>
+    <string name="pick_image">Фото</string>
+    <string name="pick_video">Видео</string>
+    <string name="start">На весь экран</string>
+    <string name="hint_main">В видеозвонке нажмите «Демонстрация экрана» и откройте это приложение — собеседники увидят выбранное фото или видео.</string>
+    <string name="preview">Предпросмотр</string>
+    <string name="help">Помощь</string>
+    <string name="help_title">Как это работает</string>
+    <string name="help_message">Android не позволяет подменить системную камеру без root.\n\n1. Выберите фото или видео.\n2. Нажмите «На весь экран».\n3. В Telegram, WhatsApp, Zoom, Google Meet или Discord начните звонок и выберите «Демонстрация экрана».\n4. Откройте Fake Camera — собеседники увидят ровно этот экран.\n\nПриложение не обращается к настоящей камере и не требует разрешений.</string>
+    <string name="help_ok">Понятно</string>
+    <string name="player_hint">Именно это видят собеседники</string>
+    <string name="fit_screen">Вписать</string>
+    <string name="crop_fill">Заполнить</string>
+    <string name="sound_on">Включить звук</string>
+    <string name="sound_off">Выключить звук</string>
+    <string name="close">Закрыть</string>
+    <string name="error_media">Не удалось открыть файл. Выберите другой.</string>
+</resources>

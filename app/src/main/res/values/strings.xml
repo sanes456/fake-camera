@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Fake Camera</string>
+    <string name="subtitle">Your photo or video on screen</string>
+    <string name="empty_title">Nothing selected</string>
+    <string name="empty_subtitle">Choose a photo or video and show it instead of your camera</string>
+    <string name="pick_image">Photo</string>
+    <string name="pick_video">Video</string>
+    <string name="start">Go fullscreen</string>
+    <string name="hint_main">In a video call, tap “Share screen” and open this app — everyone will see your selected photo or video.</string>
+    <string name="preview">Preview</string>
+    <string name="help">Help</string>
+    <string name="help_title">How it works</string>
+    <string name="help_message">Android does not allow replacing the system camera without root.\n\n1. Pick a photo or video.\n2. Tap “Go fullscreen”.\n3. In Telegram, WhatsApp, Zoom, Google Meet or Discord start a call and choose “Share screen”.\n4. Open Fake Camera — the other side sees exactly this screen.\n\nThe app does not access your real camera and needs no permissions.</string>
+    <string name="help_ok">Got it</string>
+    <string name="player_hint">This is exactly what other people see</string>
+    <string name="fit_screen">Fit</string>
+    <string name="crop_fill">Crop</string>
+    <string name="sound_on">Sound on</string>
+    <string name="sound_off">Sound off</string>
+    <string name="close">Close</string>
+    <string name="error_media">Can’t open this file. Choose another one.</string>
+</resources>

@@ -55,6 +55,15 @@
                 android:textStyle="bold" />
 
             <ImageButton
+                android:id="@+id/btnPip"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/pip_description"
+                android:src="@drawable/ic_pip"
+                app:tint="@color/text_primary" />
+
+            <ImageButton
                 android:id="@+id/btnClose"
                 android:layout_width="48dp"
                 android:layout_height="48dp"

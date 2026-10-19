@@ -1,15 +1,20 @@
 package com.fakecamera.app
 
+import android.app.PictureInPictureParams
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Rational
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.OptIn
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -20,6 +25,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
@@ -40,6 +46,8 @@ class PlayerActivity : AppCompatActivity() {
     private var fillScreen = true
     private var muted = true
     private var controlsVisible = true
+    private var startInPip = false
+    private var pipRequested = false
 
     private val handler = Handler(Looper.getMainLooper())
     private val hideControls = Runnable { setControlsVisible(false) }
@@ -62,6 +70,7 @@ class PlayerActivity : AppCompatActivity() {
 
         val uri = intent.getStringExtra(EXTRA_URI)?.toUri()
         isVideo = intent.getBooleanExtra(EXTRA_IS_VIDEO, false)
+        startInPip = intent.getBooleanExtra(EXTRA_START_IN_PIP, false)
 
         if (uri == null) {
             Toast.makeText(this, R.string.error_media, Toast.LENGTH_SHORT).show()
@@ -71,6 +80,7 @@ class PlayerActivity : AppCompatActivity() {
 
         binding.tapCatcher.setOnClickListener { toggleControls() }
         binding.btnClose.setOnClickListener { finish() }
+        binding.btnPip.setOnClickListener { enterPip() }
         binding.btnFit.setOnClickListener {
             fillScreen = !fillScreen
             applyScaleMode()
@@ -91,6 +101,7 @@ class PlayerActivity : AppCompatActivity() {
 
         applyScaleMode()
         setControlsVisible(true)
+        binding.root.post { updatePipParams() }
     }
 
     private fun setupImage(uri: Uri) {
@@ -109,6 +120,8 @@ class PlayerActivity : AppCompatActivity() {
                 return@launch
             }
             binding.imageView.setImageBitmap(bitmap)
+            updatePipParams()
+            if (startInPip) enterPip()
         }
     }
 
@@ -125,6 +138,11 @@ class PlayerActivity : AppCompatActivity() {
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: PlaybackException) {
                     Toast.makeText(this@PlayerActivity, R.string.error_media, Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    updatePipParams()
+                    if (startInPip) enterPip()
                 }
             })
             prepare()
@@ -179,6 +197,97 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun enterPip() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            Toast.makeText(this, R.string.pip_unavailable, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (!packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)) {
+            Toast.makeText(this, R.string.pip_unavailable, Toast.LENGTH_LONG).show()
+            return
+        }
+        if (pipRequested || isInPip()) return
+        pipRequested = true
+        updatePipParams()
+        if (!enterPictureInPictureMode(buildPipParams())) {
+            pipRequested = false
+            Toast.makeText(this, R.string.pip_unavailable, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun updatePipParams() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        setPictureInPictureParams(buildPipParams())
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun buildPipParams(): PictureInPictureParams {
+        val builder = PictureInPictureParams.Builder()
+            .setAspectRatio(currentAspectRatio())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+            builder.setSeamlessResizeEnabled(true)
+        }
+        return builder.build()
+    }
+
+    private fun currentAspectRatio(): Rational {
+        var width = 0
+        var height = 0
+        if (isVideo) {
+            val size = player?.videoSize
+            if (size != null) {
+                width = size.width
+                height = size.height
+            }
+        } else {
+            val drawable = binding.imageView.drawable
+            if (drawable != null) {
+                width = drawable.intrinsicWidth
+                height = drawable.intrinsicHeight
+            }
+        }
+        if (width <= 0 || height <= 0) {
+            width = 16
+            height = 9
+        }
+        val ratio = width.toFloat() / height
+        return when {
+            ratio > 2.39f -> Rational(239, 100)
+            ratio < 0.42f -> Rational(42, 100)
+            else -> Rational(width, height)
+        }
+    }
+
+    private fun isInPip(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
+
+    override fun onResume() {
+        super.onResume()
+        hideSystemBars()
+        updatePipParams()
+        if (startInPip && !pipRequested) {
+            binding.root.postDelayed({
+                if (startInPip && !pipRequested) enterPip()
+            }, 700)
+        }
+        if (isInPip()) setControlsVisible(false)
+    }
+
+    override fun onPictureInPictureModeChanged(
+        isInPictureInPictureMode: Boolean,
+        newConfig: Configuration
+    ) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        pipRequested = isInPictureInPictureMode
+        if (isInPictureInPictureMode) {
+            setControlsVisible(false)
+        } else {
+            setControlsVisible(true)
+            hideSystemBars()
+        }
+    }
+
     private fun hideSystemBars() {
         WindowCompat.getInsetsController(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.systemBars())
@@ -189,7 +298,7 @@ class PlayerActivity : AppCompatActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) hideSystemBars()
+        if (hasFocus && !isInPip()) hideSystemBars()
     }
 
     override fun onDestroy() {
@@ -203,5 +312,6 @@ class PlayerActivity : AppCompatActivity() {
     companion object {
         const val EXTRA_URI = "extra_uri"
         const val EXTRA_IS_VIDEO = "extra_is_video"
+        const val EXTRA_START_IN_PIP = "extra_start_in_pip"
     }
 }

@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         if (Settings.canDrawOverlays(this)) {
             launchOverlay()
         } else {
-            Toast.makeText(this, R.string.overlay_permission, Toast.LENGTH_LONG).show()
+            offerPip()
         }
     }
 
@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnPickVideo.setOnClickListener { pickMedia.launch(arrayOf("video/*")) }
         binding.btnStart.setOnClickListener { openPlayer() }
         binding.btnOverlay.setOnClickListener { startOverlayFlow() }
+        binding.btnPip.setOnClickListener { openPip() }
         binding.btnHelp.setOnClickListener { showHelp() }
 
         restoreSelection()
@@ -136,12 +137,14 @@ class MainActivity : AppCompatActivity() {
             binding.fileName.isVisible = false
             binding.btnStart.isEnabled = false
             binding.btnOverlay.isEnabled = false
+            binding.btnPip.isEnabled = false
             return
         }
 
         binding.emptyState.isVisible = false
         binding.btnStart.isEnabled = true
         binding.btnOverlay.isEnabled = true
+        binding.btnPip.isEnabled = true
         binding.fileName.text = displayName(uri)
         binding.fileName.isVisible = true
 
@@ -224,14 +227,50 @@ class MainActivity : AppCompatActivity() {
         if (Settings.canDrawOverlays(this)) {
             launchOverlay()
         } else {
-            overlayPermissionLauncher.launch(
-                Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
-                )
-            )
+            openOverlaySettings()
         }
     }
+
+    private fun openOverlaySettings() {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:$packageName")
+        )
+        try {
+            overlayPermissionLauncher.launch(intent)
+        } catch (_: Exception) {
+            offerPip()
+        }
+    }
+
+    private fun offerPip() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.pip_fallback_title)
+            .setMessage(R.string.pip_fallback_message)
+            .setPositiveButton(R.string.pip_start) { _, _ -> openPip() }
+            .setNeutralButton(R.string.overlay_settings) { _, _ -> openOverlaySettings() }
+            .setNegativeButton(R.string.help_ok, null)
+            .show()
+    }
+
+    private fun openPip() {
+        if (!supportsPip()) {
+            Toast.makeText(this, R.string.pip_unavailable, Toast.LENGTH_LONG).show()
+            return
+        }
+        val uri = selectedUri ?: return
+        OverlayService.stop(this)
+        startActivity(
+            Intent(this, PlayerActivity::class.java)
+                .putExtra(PlayerActivity.EXTRA_URI, uri.toString())
+                .putExtra(PlayerActivity.EXTRA_IS_VIDEO, isVideo)
+                .putExtra(PlayerActivity.EXTRA_START_IN_PIP, true)
+        )
+    }
+
+    private fun supportsPip(): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
 
     private fun launchOverlay() {
         val uri = selectedUri ?: return

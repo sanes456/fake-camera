@@ -8,6 +8,12 @@
     <string name="pick_video">Видео</string>
     <string name="start">На весь экран</string>
     <string name="overlay_start">Окно поверх</string>
+    <string name="pip_start">PiP-окно</string>
+    <string name="pip_description">Картинка в картинке</string>
+    <string name="pip_unavailable">PiP не поддерживается на этом устройстве.</string>
+    <string name="pip_fallback_title">Оверлей недоступен</string>
+    <string name="pip_fallback_message">Телефон не разрешил показ поверх других приложений. Используйте PiP-окно — оно работает без этого разрешения.</string>
+    <string name="overlay_settings">Настройки</string>
     <string name="overlay_toast">Демонстрация останется поверх. Откройте любое приложение — окно не пропадёт.</string>
     <string name="overlay_permission">Разрешите показ поверх других приложений.</string>
     <string name="overlay_channel">Режим поверх</string>
@@ -21,7 +27,7 @@
     <string name="preview">Предпросмотр</string>
     <string name="help">Помощь</string>
     <string name="help_title">Как это работает</string>
-    <string name="help_message">Android не позволяет подменить системную камеру без root.\n\n1. Выберите фото или видео.\n2. Нажмите «На весь экран».\n3. В Telegram, WhatsApp, Zoom, Google Meet или Discord начните звонок и выберите «Демонстрация экрана».\n4. Откройте Fake Camera — собеседники увидят ровно этот экран.\n\nСовет: нажмите «Окно поверх» — Fake Camera свернётся, а демонстрация останется поверх других приложений. Перетаскивайте за ручку, меняйте размер за угол или разверните на весь экран.\n\nПриложение не обращается к камере, микрофону и интернету.</string>
+    <string name="help_message">Android не позволяет подменить системную камеру без root.\n\n1. Выберите фото или видео.\n2. Нажмите «На весь экран».\n3. В Telegram, WhatsApp, Zoom, Google Meet или Discord начните звонок и выберите «Демонстрация экрана».\n4. Откройте Fake Camera — собеседники увидят ровно этот экран.\n\nСовет: нажмите «Окно поверх» — Fake Camera свернётся, а демонстрация останется поверх других приложений. Перетаскивайте за ручку, меняйте размер за угол или разверните на весь экран.\n\nЕсли «Окно поверх» недоступно, нажмите «PiP-окно» — оно работает без разрешения «Поверх других приложений».\n\nПриложение не обращается к камере, микрофону и интернету.</string>
     <string name="help_ok">Понятно</string>
     <string name="player_hint">Именно это видят собеседники</string>
     <string name="fit_screen">Вписать</string>

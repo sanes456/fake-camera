@@ -197,6 +197,17 @@
         app:icon="@drawable/ic_overlay"
         app:iconGravity="textStart" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnPip"
+        style="@style/Widget.FakeCamera.Button.Outlined"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:enabled="false"
+        android:text="@string/pip_start"
+        app:icon="@drawable/ic_pip"
+        app:iconGravity="textStart" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
